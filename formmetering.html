@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Form Monitoring MCCB</title>
+</head>
+<body>
+  <h2>Form Monitoring Arus MCCB</h2>
+  <form id="meteringForm">
+    Nama Petugas: <input type="text" name="petugas" required><br><br>
+    Tanggal: <input type="date" name="tanggal" required><br><br>
+    MCCB:
+    <select name="mccb" required>
+      <option value="MCCB GPO / Administrasi">MCCB GPO / Administrasi</option>
+      <option value="MCCB Peralatan G. Ops.">MCCB Peralatan G. Ops.</option>
+      <option value="MSSC Pen. Lantai 2 G.Ops">MSSC Pen. Lantai 2 G.Ops</option>
+      <option value="MCCB AC Studio Utama">MCCB AC Studio Utama</option>
+      <option value="MCCB AC. R Berita/Siaran Lantai 2">MCCB AC. R Berita/Siaran Lantai 2</option>
+      <option value="MCCB Berita/ Siaran Lantai 2">MCCB Berita/ Siaran Lantai 2</option>
+      <option value="MCCB Studio 2">MCCB Studio 2</option>
+    </select><br><br>
+    Arus R: <input type="number" name="arus_r" required> A<br><br>
+    Arus S: <input type="number" name="arus_s" required> A<br><br>
+    Arus T: <input type="number" name="arus_t" required> A<br><br>
+    Catatan: <textarea name="catatan"></textarea><br><br>
+    <button type="submit">Kirim</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbwrGwnGqEkd3CvMggh23OuhpWKv3y80SFBApRK4BT608u9rXNyTxvabJ2Jxsy-ZVr2B7A/exec/exec';
+    const form = document.getElementById('meteringForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      status.innerText = 'Mengirim...';
+      fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+        .then(response => status.innerText = '✅ Data berhasil dikirim!')
+        .catch(error => status.innerText = '❌ Gagal: ' + error.message);
+    });
+  </script>
+</body>
+</html>
