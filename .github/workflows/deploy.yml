@@ -22,7 +22,9 @@ jobs:
         run: npm install -g @google/clasp
 
       - name: Write GCP Credentials
-        run: echo "${{ secrets.GCP_CREDENTIALS }}" > ~/.clasprc.json
+      run: |
+      printf '%s' "${{ secrets.GCP_CREDENTIALS }}" > ~/.clasprc.json
+
 
       - name: Push to Apps Script
         run: clasp push --force
