@@ -3,12 +3,12 @@ var sheetName = 'Sheet1';
 
 function doPost(e) {
   var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
-
-  // Cek apakah sheet sudah ada header (baris pertama)
+  
+  // Cek apakah sheet sudah ada header, kalau belum buat header dulu
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Petugas', 'Nama MCCB', 'Saved At', 'Arus R', 'Arus S', 'Arus T', 'Catatan']);
   }
-
+  
   var data = JSON.parse(e.postData.contents);
 
   for (var mccbName in data) {
