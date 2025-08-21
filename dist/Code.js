@@ -1,5 +1,5 @@
-var sheetId = '1etVOgqrr1kFSzqw_1pLU2zgxso3yktsMO0SWAJTfYhQ'; // ID spreadsheet kamu
-var sheetName = 'Sheet1'; // Nama sheet di dalam spreadsheet
+var sheetId = '1etVOgqrr1kFSzqw_1pLU2zgxso3yktsMO0SWAJTfYhQ'; 
+var sheetName = 'Sheet1'; 
 var scriptProp = PropertiesService.getScriptProperties();
 
 function doPost(e) {
