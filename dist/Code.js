@@ -1,21 +1,22 @@
-var sheetName = 'Sheet1'; // Ganti sesuai nama sheet kamu
+var sheetId = '1etVOgqrr1kFSzqw_1pLU2zgxso3yktsMO0SWAJTfYhQ'; // ID spreadsheet kamu
+var sheetName = 'Sheet1'; // Nama sheet di dalam spreadsheet
 var scriptProp = PropertiesService.getScriptProperties();
 
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  var data = JSON.parse(e.postData.contents); // karena kamu submit data berupa JSON
+  var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+  var data = JSON.parse(e.postData.contents);
 
   for (var mccbName in data) {
     var record = data[mccbName];
 
     sheet.appendRow([
-      record.petugas,      // petugas jadi judul tabel, tetap disimpan ke sheet
-      mccbName,            // nama MCCB
-      record.savedAt || "",// waktu save
-      record.arus_r || "", // arus R
-      record.arus_s || "", // arus S
-      record.arus_t || "", // arus T
-      record.catatan || "" // catatan
+      record.petugas || "",
+      mccbName || "",
+      record.savedAt || "",
+      record.arus_r || "",
+      record.arus_s || "",
+      record.arus_t || "",
+      record.catatan || ""
     ]);
   }
 
