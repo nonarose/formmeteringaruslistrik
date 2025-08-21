@@ -18,12 +18,14 @@ jobs:
         with:
           node-version: '18'
 
-      - name: 📦 Install clasp
-        run: npm install -g @google/clasp
+      - name: 📦 Install clasp (next version for service account support)
+        run: npm install -g @google/clasp@next
 
-      - name: 🔐 Write GCP Credentials
+      - name: 🔐 Write GCP Service Account Credentials
         run: |
           echo '${{ secrets.GCP_CREDENTIALS }}' > service_account.json
 
-      - name: 🚀 Push to Apps Script
-        run: clasp push --force --creds service_account.json
+      - name: 🚀 Authenticate and Push to Apps Script
+        run: |
+          clasp login --creds service_account.json
+          clasp push --force
