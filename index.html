@@ -8,53 +8,41 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f4f7f8;
-      color: #333;
       margin: 0;
       padding: 20px;
+      color: #333;
     }
-
     .container {
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
-      background: #ffffff;
-      padding: 30px;
+      background: #fff;
+      padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
       margin-bottom: 20px;
+    }
+    h2, h3 {
+      text-align: center;
       color: #0d3b66;
     }
-
     label {
       display: block;
       margin-top: 15px;
       font-weight: 600;
     }
-
-    input[type="text"],
-    input[type="date"],
-    input[type="number"],
-    select,
-    textarea {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
-      border: 1px solid #ccc;
       margin-top: 5px;
+      border: 1px solid #ccc;
       border-radius: 5px;
-      box-sizing: border-box;
       font-size: 14px;
+      box-sizing: border-box;
     }
-
-    textarea {
-      resize: vertical;
-    }
-
+    textarea { resize: vertical; }
     button {
-      background-color: #0d3b66;
-      color: white;
+      background: #0d3b66;
+      color: #fff;
       border: none;
       padding: 12px;
       margin-top: 20px;
@@ -64,30 +52,53 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
-    button:hover {
-      background-color: #145ea8;
+    button:hover { background: #145ea8; }
+    #status { text-align: center; margin-top: 10px; font-weight: bold; }
+    .hidden { display: none; }
+    img.preview {
+      margin-top: 10px;
+      max-width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
-
-    #status {
+    table {
+      border-collapse: collapse;
+      width: 100%;
       margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: center;
-      font-weight: bold;
+      font-size: 13px;
+    }
+    th { background: #f0f0f0; }
+    td img {
+      max-width: 80px;
+      max-height: 80px;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="loginPage">
+    <h2>Login Petugas</h2>
+    <label>Nama Petugas:</label>
+    <input type="text" id="loginPetugas" required>
+    <button onclick="login()">Masuk</button>
+  </div>
+
+  <div class="container hidden" id="formPage">
     <h2>Form Monitoring Arus MCCB</h2>
     <form id="meteringForm">
       <label>Nama Petugas:</label>
-      <input type="text" name="petugas" required>
+      <input type="text" id="petugas" name="petugas" readonly>
 
       <label>Tanggal:</label>
-      <input type="date" name="tanggal" required>
+      <input type="date" id="tanggal" name="tanggal" required>
 
       <label>MCCB:</label>
-      <select name="mccb" required>
+      <select id="mccb" name="mccb" required>
         <option value="">-- Pilih MCCB --</option>
         <option value="MCCB GPO / Administrasi">MCCB GPO / Administrasi</option>
         <option value="MCCB Peralatan G. Ops.">MCCB Peralatan G. Ops.</option>
@@ -99,43 +110,229 @@
       </select>
 
       <label>Arus R (A):</label>
-      <input type="number" name="arus_r" required>
+      <input type="number" id="arus_r" name="arus_r" required>
 
       <label>Arus S (A):</label>
-      <input type="number" name="arus_s" required>
+      <input type="number" id="arus_s" name="arus_s" required>
 
       <label>Arus T (A):</label>
-      <input type="number" name="arus_t" required>
+      <input type="number" id="arus_t" name="arus_t" required>
 
       <label>Catatan:</label>
-      <textarea name="catatan" rows="3" placeholder="Tambahkan catatan jika ada..."></textarea>
+      <textarea id="catatan" name="catatan" rows="3"></textarea>
 
-      <button type="submit">📤 Kirim Data</button>
+      <label>Ambil Foto:</label>
+      <input type="file" accept="image/*" capture="environment" id="fotoInput">
+      <canvas id="canvas" class="hidden"></canvas>
+      <img id="preview" class="preview hidden">
+
+      <button type="button" onclick="saveMCB()">💾 Save MCCB</button>
     </form>
-
     <p id="status"></p>
   </div>
 
-  <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwrGwnGqEkd3CvMggh23OuhpWKv3y80SFBApRK4BT608u9rXNyTxvabJ2Jxsy-ZVr2B7A/exec';
-    const form = document.getElementById('meteringForm');
-    const status = document.getElementById('status');
+  <div class="container hidden" id="submitPage">
+    <h3>Submit Semua Data</h3>
+    <button onclick="submitAll()">📤 Submit All</button>
+    <div id="output"></div>
+  </div>
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      status.innerText = '⏳ Mengirim...';
-      fetch(scriptURL, { method: 'POST', body: new FormData(form) })
-        .then(response => {
-          status.innerText = '✅ Data berhasil dikirim!';
-          form.reset();
-        })
-        .catch(error => {
-          console.error('Error!', error.message);
-          status.innerText = '❌ Gagal mengirim. Coba lagi.';
-        });
+  <script>
+    const loginPage = document.getElementById('loginPage');
+    const formPage = document.getElementById('formPage');
+    const submitPage = document.getElementById('submitPage');
+    const petugasInput = document.getElementById('petugas');
+    const fotoInput = document.getElementById('fotoInput');
+    const canvas = document.getElementById('canvas');
+    const preview = document.getElementById('preview');
+    const ctx = canvas.getContext('2d');
+    const mccbSelect = document.getElementById('mccb');
+    const output = document.getElementById('output');
+    const status = document.getElementById('status');
+    let lokasiTeks = "Lokasi tidak ditemukan";
+    const savedReports = {};
+
+    // ===== Login =====
+    function login() {
+      const nama = document.getElementById('loginPetugas').value.trim();
+      if (!nama) { alert("Masukkan nama petugas"); return; }
+      petugasInput.value = nama;
+      loginPage.classList.add('hidden');
+      formPage.classList.remove('hidden');
+      submitPage.classList.remove('hidden');
+      ambilLokasi();
+    }
+
+    // ===== Ambil Lokasi =====
+    function ambilLokasi() {
+      if (!navigator.geolocation) {
+        lokasiTeks = "Geolocation tidak didukung";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          lokasiTeks = `Lat: ${pos.coords.latitude.toFixed(5)}, Lng: ${pos.coords.longitude.toFixed(5)}`;
+        },
+        err => { lokasiTeks = "Lokasi gagal diperoleh"; }
+      );
+    }
+
+    // ===== Foto + Watermark =====
+    fotoInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const nama = petugasInput.value;
+          const waktu = new Date().toLocaleString();
+
+          const lines = [nama, lokasiTeks, waktu];
+          const fontSize = Math.floor(canvas.height / 24);
+          ctx.font = `${fontSize}px Arial`;
+          ctx.fillStyle = "white";
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 4;
+          ctx.textAlign = "left";
+
+          const padding = 20;
+          const lineHeight = fontSize * 1.3;
+          let y = canvas.height - padding;
+
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const line = lines[i];
+            wrapText(line, padding, y, canvas.width * 0.9, lineHeight);
+            y -= lineHeight * Math.ceil(ctx.measureText(line).width / (canvas.width*0.9));
+          }
+
+          preview.src = canvas.toDataURL("image/jpeg", 0.9);
+          preview.classList.remove('hidden');
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
     });
+
+    function wrapText(text, x, y, maxWidth, lineHeight) {
+      const words = text.split(" ");
+      let line = "";
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + " ";
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.strokeText(line, x, y);
+          ctx.fillText(line, x, y);
+          line = words[n] + " ";
+          y -= lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      if (line) {
+        ctx.strokeText(line, x, y);
+        ctx.fillText(line, x, y);
+      }
+    }
+
+    // ===== Save Per MCCB =====
+    function saveMCB() {
+      const mccb = mccbSelect.value;
+      if (!mccb) { alert("Pilih MCCB dahulu"); return; }
+
+      const data = {
+        petugas: petugasInput.value,
+        tanggal: document.getElementById('tanggal').value,
+        arus_r: document.getElementById('arus_r').value,
+        arus_s: document.getElementById('arus_s').value,
+        arus_t: document.getElementById('arus_t').value,
+        catatan: document.getElementById('catatan').value,
+        foto: preview.src || null,
+        savedAt: new Date().toLocaleString()
+      };
+
+      savedReports[mccb] = data;
+      status.innerText = `✅ Data tersimpan untuk ${mccb}`;
+      renderOutput();
+    }
+
+    mccbSelect.addEventListener('change', () => {
+      const mccb = mccbSelect.value;
+      if (mccb && savedReports[mccb]) {
+        let d = savedReports[mccb];
+        document.getElementById('tanggal').value = d.tanggal || "";
+        document.getElementById('arus_r').value = d.arus_r || "";
+        document.getElementById('arus_s').value = d.arus_s || "";
+        document.getElementById('arus_t').value = d.arus_t || "";
+        document.getElementById('catatan').value = d.catatan || "";
+        if (d.foto) {
+          preview.src = d.foto;
+          preview.classList.remove('hidden');
+        } else {
+          preview.classList.add('hidden');
+        }
+      } else {
+        document.getElementById('tanggal').value = "";
+        document.getElementById('arus_r').value = "";
+        document.getElementById('arus_s').value = "";
+        document.getElementById('arus_t').value = "";
+        document.getElementById('catatan').value = "";
+        preview.classList.add('hidden');
+      }
+    });
+
+    // ===== Submit All =====
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwrGwnGqEkd3CvMggh23OuhpWKv3y80SFBApRK4BT608u9rXNyTxvabJ2Jxsy-ZVr2B7A/exec";
+    function submitAll() {
+      if (Object.keys(savedReports).length === 0) {
+        alert("Belum ada data yang disimpan");
+        return;
+      }
+      output.innerHTML = "<p>⏳ Mengirim...</p>";
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(savedReports)
+      })
+      .then(r => r.text())
+      .then(txt => { output.innerHTML = "<p>✅ Semua data terkirim!</p><pre>"+txt+"</pre>"; })
+      .catch(err => { output.innerHTML = "<p>❌ Gagal kirim data</p>"; });
+    }
+
+    // ===== Render Output =====
+    function renderOutput() {
+      let html = `<h3>${petugasInput.value}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>MCCB</th>
+              <th>R</th>
+              <th>S</th>
+              <th>T</th>
+              <th>Catatan</th>
+              <th>Foto</th>
+              <th>Waktu Save</th>
+            </tr>
+          </thead><tbody>`;
+      for (let mccb in savedReports) {
+        let d = savedReports[mccb];
+        html += `
+          <tr>
+            <td>${mccb}</td>
+            <td>${d.arus_r}</td>
+            <td>${d.arus_s}</td>
+            <td>${d.arus_t}</td>
+            <td>${d.catatan}</td>
+            <td>${d.foto ? `<img src="${d.foto}">` : '-'}</td>
+            <td>${d.savedAt}</td>
+          </tr>`;
+      }
+      html += "</tbody></table>";
+      output.innerHTML = html;
+    }
   </script>
 </body>
 </html>
-
-
