@@ -23,7 +23,7 @@ jobs:
 
       - name: 🔐 Write GCP Credentials
         run: |
-          echo '${{ secrets.GCP_CREDENTIALS }}' > ~/.clasprc.json
+          echo '${{ secrets.GCP_CREDENTIALS }}' > service_account.json
 
       - name: 🚀 Push to Apps Script
-        run: clasp push --force
+        run: clasp push --force --creds service_account.json
