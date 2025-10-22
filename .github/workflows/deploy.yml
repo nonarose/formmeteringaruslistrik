@@ -1,0 +1,33 @@
+name: Deploy to Google Apps Script
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎️ Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: 🔧 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 📦 Install clasp
+        run: npm install -g @google/clasp
+
+      - name: 🔐 Write GCP Service Account Credentials
+        run: echo '${{ secrets.GCP_CREDENTIALS }}' > ${{ github.workspace }}/service_account.json
+
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS environment variable
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service_account.json" >> $GITHUB_ENV
+
+      - name: 🚀 Authenticate and Push to Apps Script
+        run: |
+          clasp login --no-localhost --creds service_account.json
+          clasp push --force
