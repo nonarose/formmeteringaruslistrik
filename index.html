@@ -270,17 +270,26 @@ document.getElementById('submitBtn').onclick=async()=>{
   if(photoStore[keyPhot])
     payload._photos[keyPhot] = photoStore[keyPhot];
 
-  const res = await fetch(scriptURL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
+  try {
+  const res = await fetch(scriptURL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
 
-  status.innerText = await res.text();
-};
+  status.innerText = "✅ Data terkirim! Cek Google Sheets 👌";
+  savedReports = {};
+  output.innerHTML = "";
+  preview.classList.add("hidden");
+} catch(err) {
+  status.innerText = "❌ Gagal kirim: " + err;
+}
+
 </script>
 
 </body>
 </html>
+
 
 
