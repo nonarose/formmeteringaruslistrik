@@ -1,324 +1,284 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Form Monitoring MCCB/PDB</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0d3b66;
-      margin: 0;
-      padding: 0;
-      color: #000;
-    }
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #f8f9fa;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    }
-    h2, h3 {
-      text-align: center;
-      color: #0d3b66;
-      margin-top: 0;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    textarea { resize: vertical; }
-    button {
-      background: #0d3b66;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      margin-top: 20px;
-      width: 100%;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    button:hover { background: #145ea8; }
-    #status, #lokasiStatus {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    .hidden { display: none; }
-    img.preview {
-      margin-top: 10px;
-      max-width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      font-size: 13px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th { background: #f0f0f0; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Form Monitoring MCCB/PDB</title>
+
+<style>
+  body{font-family:"Segoe UI",sans-serif;background:#0d3b66;margin:0;padding:0;color:#000}
+  .container{max-width:600px;margin:40px auto;background:#f8f9fa;padding:25px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,.2)}
+  h2,h3{text-align:center;color:#0d3b66;margin-top:0}
+  label{display:block;margin-top:12px;font-weight:600}
+  input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:5px;font-size:14px;box-sizing:border-box}
+  textarea{resize:vertical}
+  button{background:#0d3b66;color:#fff;border:none;padding:12px;margin-top:20px;width:100%;border-radius:6px;font-size:16px;cursor:pointer;transition:background .3s}
+  button:hover{background:#145ea8}
+  #status,#lokasiStatus{text-align:center;margin-top:10px;font-weight:bold}
+  .hidden{display:none}
+  img.preview{margin-top:10px;max-width:100%;border:1px solid #ccc;border-radius:5px}
+  table{border-collapse:collapse;width:100%;margin-top:20px;font-size:13px}
+  th,td{border:1px solid #ccc;padding:8px;text-align:center}
+  th{background:#f0f0f0}
+  .small{font-size:12px;color:#666}
+</style>
 </head>
+
 <body>
-  <!-- LOGIN -->
-  <div class="container" id="loginPage">
-    <h2>Login Petugas</h2>
+
+<!-- LOGIN -->
+<div class="container" id="loginPage">
+  <h2>Login Petugas</h2>
+  <label>Nama Petugas:</label>
+  <input type="text" id="loginPetugas" placeholder="Masukkan nama petugas" required>
+
+  <label>Satuan Kerja:</label>
+  <select id="satuanKerja" required>
+    <option value="">-- Pilih Satuan Kerja --</option>
+    <option>Stasiun Pucanggading</option>
+    <option>Tx Baribis</option>
+    <option>Tx Garung</option>
+    <option>Tx Gantungan</option>
+    <option>Tx Gn Depok</option>
+    <option>Tx Gn Tugel</option>
+    <option>Tx Gombel</option>
+    <option>Tx Pager Gedog</option>
+    <option>Tx Pucang Pendawa</option>
+    <option>Tx Semanggi</option>
+  </select>
+
+  <button id="loginBtn">Masuk</button>
+  <p class="small">Reverse geocoding otomatis hanya untuk watermark foto</p>
+</div>
+
+<!-- FORM -->
+<div class="container hidden" id="formPage">
+  <h2>Form Monitoring Arus</h2>
+  <p id="lokasiStatus">📍 Mengambil alamat...</p>
+
+  <form id="meteringForm" onsubmit="return false;">
     <label>Nama Petugas:</label>
-    <input type="text" id="loginPetugas" placeholder="Masukkan nama petugas" required>
+    <input type="text" id="petugas" readonly>
+
     <label>Satuan Kerja:</label>
-    <select id="satuanKerja" required>
-      <option value="">-- Pilih Satuan Kerja --</option>
-      <option>Stasiun Pucanggading</option>
-      <option>Tx Baribis</option>
-      <option>Tx Garung</option>
-      <option>Tx Gantungan</option>
-      <option>Tx Gn Depok</option>
-      <option>Tx Gn Tugel</option>
-      <option>Tx Gombel</option>
-      <option>Tx Pager Gedog</option>
-      <option>Tx Pucang Pendawa</option>
-      <option>Tx Semanggi</option>
+    <input type="text" id="unitKerja" readonly>
+
+    <label>Tanggal:</label>
+    <input type="date" id="tanggal" required>
+
+    <label>Shift:</label>
+    <select id="shift" required>
+      <option value="">-- Pilih Shift --</option>
+      <option>Shift 1</option>
+      <option>Shift 2</option>
+      <option>Shift 3</option>
     </select>
-    <button id="loginBtn">Masuk</button>
-  </div>
 
-  <!-- FORM -->
-  <div class="container hidden" id="formPage">
-    <h2>Form Monitoring Arus</h2>
-    <p id="lokasiStatus">📍 Mengambil alamat...</p>
+    <label>MCCB/PDB:</label>
+    <select id="mccb" required></select>
 
-    <form id="meteringForm">
-      <label>Nama Petugas:</label>
-      <input type="text" id="petugas" readonly>
+    <label>Arus R (A):</label>
+    <input type="number" id="arus_r" required>
 
-      <label>Satuan Kerja:</label>
-      <input type="text" id="unitKerja" readonly>
+    <label>Arus S (A):</label>
+    <input type="number" id="arus_s" required>
 
-      <label>Tanggal:</label>
-      <input type="date" id="tanggal" required>
+    <label>Arus T (A):</label>
+    <input type="number" id="arus_t" required>
 
-      <label>MCCB/PDB:</label>
-      <select id="mccb" required></select>
+    <label>Catatan:</label>
+    <textarea id="catatan" rows="3"></textarea>
 
-      <label>Arus R (A):</label>
-      <input type="number" id="arus_r" required>
+    <button type="button" id="saveBtn">💾 Simpan Data</button>
+    <button type="button" id="fotoBtn" disabled>📸 Ambil Foto (1x / shift)</button>
+    <button type="button" id="submitBtn">📤 Kirim</button>
+  </form>
 
-      <label>Arus S (A):</label>
-      <input type="number" id="arus_s" required>
+  <p id="status"></p>
 
-      <label>Arus T (A):</label>
-      <input type="number" id="arus_t" required>
+  <canvas id="canvas" class="hidden"></canvas>
+  <img id="preview" class="preview hidden">
 
-      <label>Catatan:</label>
-      <textarea id="catatan" rows="3"></textarea>
+  <div id="output"></div>
+</div>
 
-      <button type="button" id="saveBtn">💾 Simpan Data</button>
-      <button type="button" id="fotoBtn" disabled>📸 Ambil Foto</button>
-      <button type="button" id="submitBtn">📤 Kirim Data</button>
-    </form>
+<script>
+const scriptURL = "YOUR_WEBAPP_URL_SCRIPT_HERE"; 
 
-    <p id="status"></p>
-    <canvas id="canvas" class="hidden"></canvas>
-    <img id="preview" class="preview hidden">
-    <div id="output"></div>
-  </div>
+const loginPage = document.getElementById('loginPage');
+const formPage = document.getElementById('formPage');
+const satuanKerja = document.getElementById('satuanKerja');
+const petugasInput = document.getElementById('petugas');
+const unitKerjaInput = document.getElementById('unitKerja');
 
-  <script>
-  const loginPage = document.getElementById('loginPage');
-  const formPage = document.getElementById('formPage');
-  const loginBtn = document.getElementById('loginBtn');
-  const satuanKerja = document.getElementById('satuanKerja');
-  const petugasInput = document.getElementById('petugas');
-  const unitKerjaInput = document.getElementById('unitKerja');
-  const lokasiStatus = document.getElementById('lokasiStatus');
-  const canvas = document.getElementById('canvas');
-  const preview = document.getElementById('preview');
-  const ctx = canvas.getContext('2d');
-  const fotoBtn = document.getElementById('fotoBtn');
-  const output = document.getElementById('output');
-  const status = document.getElementById('status');
-  const mccbSelect = document.getElementById('mccb');
-  let lokasiTeks = { alamat: "", lat: "", lng: "" };
-  const savedReports = {};
+const tanggal = document.getElementById('tanggal');
+const shift = document.getElementById('shift');
+const arus_r = document.getElementById('arus_r');
+const arus_s = document.getElementById('arus_s');
+const arus_t = document.getElementById('arus_t');
+const catatan = document.getElementById('catatan');
 
-  // === LOGIN ===
-  loginBtn.addEventListener('click', () => {
-    const nama = document.getElementById('loginPetugas').value.trim();
-    const unit = satuanKerja.value;
-    if (!nama || !unit) return alert("Masukkan nama dan satuan kerja!");
-    petugasInput.value = nama;
-    unitKerjaInput.value = unit;
-    loginPage.classList.add('hidden');
-    formPage.classList.remove('hidden');
-    ambilLokasi();
-    isiDropdownMCCB(unit);
-  });
+const mccbSelect = document.getElementById('mccb');
+const lokasiStatus = document.getElementById('lokasiStatus');
+const status = document.getElementById('status');
 
-  // === DROPDOWN MCCB ===
-  function isiDropdownMCCB(unit) {
-    const options = mccbSelect;
-    options.innerHTML = `<option value="">-- Pilih MCCB/PDB --</option>`;
-    if (unit === "Stasiun Pucanggading") {
-      [
-        "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.",
-        "MCCB Pen. Lantai 2 G. Ops.","MCCB AC Lantai 2 G. Ops.",
-        "MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
-        "MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.",
-        "MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1",
-        "MCCB Outdoor/L. Taman"
-      ].forEach(n => options.innerHTML += `<option>${n}</option>`);
-    } else {
-      ["PDB Pemancar","PDB AC","PDB Penerangan"]
-      .forEach(n => options.innerHTML += `<option>${n}</option>`);
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const preview = document.getElementById('preview');
+const fotoBtn = document.getElementById('fotoBtn');
+const output = document.getElementById('output');
+
+let lokasiTeks = { alamat:"", lat:"", lng:"" };
+let savedReports = {};
+let photoStore = {};
+
+document.getElementById('loginBtn').onclick = () => {
+  const nama = document.getElementById('loginPetugas').value.trim();
+  const unit = satuanKerja.value;
+  if (!nama || !unit) return alert("Isi semua field!");
+
+  petugasInput.value = nama;
+  unitKerjaInput.value = unit;
+
+  loginPage.classList.add('hidden');
+  formPage.classList.remove('hidden');
+
+  ambilLokasi();
+  isiDropdown(unit);
+};
+
+function isiDropdown(u){
+  mccbSelect.innerHTML = `<option value="">--Pilih--</option>`;
+  let list =
+    u === "Stasiun Pucanggading"
+      ? [
+          "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.",
+          "MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama",
+          "MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
+          "MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.",
+          "MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"
+        ]
+      : ["PDB Pemancar","PDB AC","PDB Penerangan"];
+
+  list.forEach(x => mccbSelect.insertAdjacentHTML("beforeend", `<option>${x}</option>`));
+}
+
+function ambilLokasi(){
+  lokasiStatus.innerText="📍Mengambil...";
+  navigator.geolocation?.getCurrentPosition(async p=>{
+    const lat=p.coords.latitude.toFixed(6);
+    const lng=p.coords.longitude.toFixed(6);
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const j=await r.json();
+      lokasiTeks={alamat:j.display_name,lat,lng};
+      lokasiStatus.innerText="✅ "+j.display_name;
+    }catch{
+      lokasiTeks={alamat:`${lat}, ${lng}`,lat,lng};
+      lokasiStatus.innerText="⚠️ Lokasi diperoleh";
     }
-  }
-
-  // === AMBIL LOKASI ===
-  function ambilLokasi() {
-    lokasiStatus.innerText = "📍 Mengambil alamat...";
-    if (!navigator.geolocation) {
-      lokasiStatus.innerText = "❌ Geolocation tidak didukung.";
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const lat = pos.coords.latitude.toFixed(6);
-      const lng = pos.coords.longitude.toFixed(6);
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`);
-        const data = await res.json();
-        lokasiTeks = { alamat: data.display_name || "Alamat tidak ditemukan", lat, lng };
-        lokasiStatus.innerText = `✅ ${lokasiTeks.alamat}`;
-      } catch {
-        lokasiStatus.innerText = "⚠️ Gagal mengambil alamat.";
-      }
-    }, () => lokasiStatus.innerText = "❌ Lokasi gagal diperoleh.");
-  }
-
-  // === SIMPAN DATA ===
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    const mccb = mccbSelect.value;
-    if (!mccb) return alert("Pilih MCCB/PDB dulu!");
-    const data = {
-      petugas: petugasInput.value,
-      unit: unitKerjaInput.value,
-      tanggal: document.getElementById('tanggal').value,
-      arus_r: document.getElementById('arus_r').value,
-      arus_s: document.getElementById('arus_s').value,
-      arus_t: document.getElementById('arus_t').value,
-      catatan: document.getElementById('catatan').value,
-      savedAt: new Date().toLocaleString()
-    };
-    savedReports[mccb] = data;
-    status.innerText = `✅ Data tersimpan untuk ${mccb}`;
-    fotoBtn.disabled = false;
-    renderOutput();
   });
+}
 
-  // === AMBIL FOTO & WATERMARK ===
-  fotoBtn.addEventListener('click', () => {
-    const mccb = mccbSelect.value;
-    if (!mccb || !savedReports[mccb]) return alert("Simpan data dulu sebelum ambil foto!");
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          tambahWatermark();
-          const fotoBase64 = canvas.toDataURL("image/jpeg", 0.9);
-          preview.src = fotoBase64;
-          preview.classList.remove('hidden');
-          savedReports[mccb].foto = fotoBase64; // simpan base64 ke data
-          alert("📸 Foto tersimpan di data lokal, siap dikirim!");
-        };
-        img.src = ev.target.result;
+document.getElementById('saveBtn').onclick = ()=>{
+  if(!mccbSelect.value) return alert("Pilih MCCB terlebih dahulu!");
+
+  savedReports[mccbSelect.value] = {
+    petugas: petugasInput.value,
+    unit: unitKerjaInput.value,
+    tanggal: tanggal.value,
+    shift: shift.value,
+    arus_r: arus_r.value,
+    arus_s: arus_s.value,
+    arus_t: arus_t.value,
+    catatan: catatan.value,
+    savedAt: new Date().toLocaleString()
+  };
+
+  fotoBtn.disabled=false;
+  status.innerText="✅ Data tersimpan";
+  render();
+};
+
+fotoBtn.onclick=()=>{
+  let i=document.createElement('input');
+  i.type='file'; i.accept='image/*'; i.capture='environment';
+
+  i.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      let img=new Image();
+      img.src=ev.target.result;
+      img.onload=()=>{
+        const w=1600,h=img.height*(1600/img.width);
+        canvas.width=w; canvas.height=h;
+        ctx.drawImage(img,0,0,w,h);
+        addWatermark();
+        const key=`${unitKerjaInput.value}|${tanggal.value}|${shift.value}`;
+        photoStore[key] = canvas.toDataURL('image/jpeg',0.7);
+        preview.src=photoStore[key];
+        preview.classList.remove('hidden');
       };
-      reader.readAsDataURL(file);
     };
-    input.click();
+    reader.readAsDataURL(file);
+  };
+
+  i.click();
+};
+
+function addWatermark(){
+  ctx.fillStyle="rgba(0,0,0,.5)";
+  ctx.fillRect(0,canvas.height-80,canvas.width,80);
+  ctx.fillStyle="#fff";
+  ctx.font="bold 14px Segoe UI";
+  ctx.fillText("📍 "+lokasiTeks.alamat,10,canvas.height-60);
+  ctx.fillText(`${petugasInput.value} — ${unitKerjaInput.value}`,10,canvas.height-40);
+  ctx.fillText(new Date().toLocaleString(),10,canvas.height-20);
+}
+
+function render(){
+  let html = `<h3>Data Tersimpan</h3><table><tr>
+    <th>MCCB/PDB</th><th>R</th><th>S</th><th>T</th><th>Catatan</th></tr>`;
+
+  for(let k in savedReports){
+    let d=savedReports[k];
+    html += `<tr>
+      <td>${k}</td><td>${d.arus_r}</td><td>${d.arus_s}</td><td>${d.arus_t}</td><td>${d.catatan}</td>
+    </tr>`;
+  }
+  html+="</table>";
+  output.innerHTML=html;
+}
+
+document.getElementById('submitBtn').onclick=async()=>{
+  if(!Object.keys(savedReports).length)
+    return alert("Belum ada data tersimpan!");
+
+  status.innerText="⏳ Mengirim ke server...";
+  
+  const any = Object.values(savedReports)[0];
+  const keyPhot = `${any.unit}|${any.tanggal}|${any.shift}`;
+  
+  const payload = {
+    entries: savedReports,
+    _photos: {}
+  };
+
+  if(photoStore[keyPhot])
+    payload._photos[keyPhot] = photoStore[keyPhot];
+
+  const res = await fetch(scriptURL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
   });
 
-  function tambahWatermark() {
-    const { alamat, lat, lng } = lokasiTeks;
-    const nama = petugasInput.value;
-    const unit = unitKerjaInput.value;
-    const waktu = new Date().toLocaleString();
-    const fontSize = Math.floor(canvas.height / 38);
-    const padding = 25;
-    const textY = canvas.height - 150;
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(0, textY, canvas.width, 150);
-    ctx.font = `${fontSize}px Segoe UI`;
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "top";
-    ctx.fillText(`${nama} — ${unit}`, padding, textY + 10);
-    ctx.fillText(alamat, padding, textY + 40);
-    ctx.fillText(`(${lat}, ${lng}) — ${waktu}`, padding, textY + 70);
-  }
+  status.innerText = await res.text();
+};
+</script>
 
-  // === TABEL PREVIEW ===
-  function renderOutput() {
-    let html = `<h3>Data Tersimpan</h3><table><thead><tr>
-      <th>MCCB/PDB</th><th>R</th><th>S</th><th>T</th><th>Catatan</th><th>Waktu</th></tr></thead><tbody>`;
-    for (let key in savedReports) {
-      const d = savedReports[key];
-      html += `<tr><td>${key}</td><td>${d.arus_r}</td><td>${d.arus_s}</td><td>${d.arus_t}</td><td>${d.catatan}</td><td>${d.savedAt}</td></tr>`;
-    }
-    html += "</tbody></table>";
-    output.innerHTML = html;
-  }
-
-  // === KIRIM DATA KE SCRIPT ===
-  const scriptURL = "https://script.google.com/macros/s/AKfycbx357OCiyBDhEtO9nqv3w7qhUL-JymCnD7vJG9w96fP9v1FPaHjAFAaquF-T5lxQJOo/exec";
-  document.getElementById('submitBtn').addEventListener('click', () => {
-    if (Object.keys(savedReports).length === 0) return alert("Belum ada data disimpan!");
-    const unit = document.getElementById('unitKerja').value;
-    for (let key in savedReports) savedReports[key].satuan_kerja = unit;
-    output.innerHTML = "<p>⏳ Mengirim data...</p>";
-    fetch(scriptURL, {
-      method: 'POST',
-      body: new URLSearchParams({ data: JSON.stringify(savedReports) }),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-    })
-    .then(r => r.text())
-    .then(txt => {
-      output.innerHTML = `<p>✅ Data & foto berhasil dikirim!</p><pre>${txt}</pre>`;
-      status.innerText = "";
-    })
-    .catch(err => {
-      console.error(err);
-      output.innerHTML = "<p>❌ Gagal kirim data. Periksa koneksi atau Apps Script.</p>";
-    });
-  });
-  </script>
 </body>
 </html>
-
