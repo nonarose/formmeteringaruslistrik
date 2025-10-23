@@ -1,295 +1,412 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Form Monitoring MCCB/PDB</title>
-
-<style>
-  body{font-family:"Segoe UI",sans-serif;background:#0d3b66;margin:0;padding:0;color:#000}
-  .container{max-width:600px;margin:40px auto;background:#f8f9fa;padding:25px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,.2)}
-  h2,h3{text-align:center;color:#0d3b66;margin-top:0}
-  label{display:block;margin-top:12px;font-weight:600}
-  input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:5px;font-size:14px;box-sizing:border-box}
-  textarea{resize:vertical}
-  button{background:#0d3b66;color:#fff;border:none;padding:12px;margin-top:20px;width:100%;border-radius:6px;font-size:16px;cursor:pointer;transition:background .3s}
-  button:hover{background:#145ea8}
-  #status,#lokasiStatus{text-align:center;margin-top:10px;font-weight:bold}
-  .hidden{display:none}
-  img.preview{margin-top:10px;max-width:100%;border:1px solid #ccc;border-radius:5px}
-  table{border-collapse:collapse;width:100%;margin-top:20px;font-size:13px}
-  th,td{border:1px solid #ccc;padding:8px;text-align:center}
-  th{background:#f0f0f0}
-  .small{font-size:12px;color:#666}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Form Monitoring MCCB/PDB</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #0d3b66; margin:0; padding:0; color:#000; }
+    .container { max-width:600px; margin:40px auto; background:#f8f9fa; padding:20px; border-radius:10px; box-shadow:0 0 12px rgba(0,0,0,0.18); }
+    h2 { text-align:center; color:#0d3b66; margin:0 0 12px; }
+    label { display:block; margin-top:12px; font-weight:600; color:#0a2340; }
+    input, select, textarea, button { width:100%; box-sizing:border-box; padding:10px; border-radius:6px; border:1px solid #cfcfcf; font-size:14px; }
+    textarea { resize:vertical; min-height:60px; }
+    button { background:#0d3b66; color:#fff; border:none; cursor:pointer; margin-top:12px; }
+    button:disabled { opacity:0.6; cursor:not-allowed; }
+    #lokasiStatus,#status { text-align:center; margin-top:10px; font-weight:700; color:#0b2b4a; }
+    .hidden { display:none; }
+    img.preview { margin-top:10px; max-width:100%; border:1px solid #ccc; border-radius:6px; display:block; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; font-size:13px; }
+    th,td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#eef4fb; }
+    .small { font-size:12px; color:#444; }
+  </style>
 </head>
-
 <body>
-
-<!-- LOGIN -->
-<div class="container" id="loginPage">
-  <h2>Login Petugas</h2>
-  <label>Nama Petugas:</label>
-  <input type="text" id="loginPetugas" placeholder="Masukkan nama petugas" required>
-
-  <label>Satuan Kerja:</label>
-  <select id="satuanKerja" required>
-    <option value="">-- Pilih Satuan Kerja --</option>
-    <option>Stasiun Pucanggading</option>
-    <option>Tx Baribis</option>
-    <option>Tx Garung</option>
-    <option>Tx Gantungan</option>
-    <option>Tx Gn Depok</option>
-    <option>Tx Gn Tugel</option>
-    <option>Tx Gombel</option>
-    <option>Tx Pager Gedog</option>
-    <option>Tx Pucang Pendawa</option>
-    <option>Tx Semanggi</option>
-  </select>
-
-  <button id="loginBtn">Masuk</button>
-  <p class="small">Reverse geocoding otomatis hanya untuk watermark foto</p>
-</div>
-
-<!-- FORM -->
-<div class="container hidden" id="formPage">
-  <h2>Form Monitoring Arus</h2>
-  <p id="lokasiStatus">📍 Mengambil alamat...</p>
-
-  <form id="meteringForm" onsubmit="return false;">
+  <div class="container" id="loginPage">
+    <h2>Login Petugas</h2>
     <label>Nama Petugas:</label>
-    <input type="text" id="petugas" readonly>
-
+    <input type="text" id="loginPetugas" placeholder="Masukkan nama petugas" />
     <label>Satuan Kerja:</label>
-    <input type="text" id="unitKerja" readonly>
-
-    <label>Tanggal:</label>
-    <input type="date" id="tanggal" required>
-
-    <label>Shift:</label>
-    <select id="shift" required>
-      <option value="">-- Pilih Shift --</option>
-      <option>Shift 1</option>
-      <option>Shift 2</option>
-      <option>Shift 3</option>
+    <select id="satuanKerja">
+      <option value="">-- Pilih Satuan Kerja --</option>
+      <option>Stasiun Pucanggading</option>
+      <option>Tx Baribis</option>
+      <option>Tx Garung</option>
+      <option>Tx Gantungan</option>
+      <option>Tx Gn Depok</option>
+      <option>Tx Gn Tugel</option>
+      <option>Tx Gombel</option>
+      <option>Tx Pager Gedog</option>
+      <option>Tx Pucang Pendawa</option>
+      <option>Tx Semanggi</option>
     </select>
+    <button id="loginBtn">Masuk</button>
+    <p id="lokasiStatus" class="small">📍 Menunggu...</p>
+  </div>
 
-    <label>MCCB/PDB:</label>
-    <select id="mccb" required></select>
+  <div class="container hidden" id="formPage" aria-hidden="true">
+    <h2>Form Monitoring Arus</h2>
+    <p id="lokasiStatus2" class="small">📍 Mengambil alamat...</p>
 
-    <label>Arus R (A):</label>
-    <input type="number" id="arus_r" required>
+    <form id="meteringForm" onsubmit="return false;">
+      <label>Nama Petugas:</label>
+      <input type="text" id="petugas" readonly>
 
-    <label>Arus S (A):</label>
-    <input type="number" id="arus_s" required>
+      <label>Satuan Kerja:</label>
+      <input type="text" id="unitKerja" readonly>
 
-    <label>Arus T (A):</label>
-    <input type="number" id="arus_t" required>
+      <label>Tanggal:</label>
+      <input type="date" id="tanggal" required>
 
-    <label>Catatan:</label>
-    <textarea id="catatan" rows="3"></textarea>
+      <label>Shift:</label>
+      <select id="shift" required>
+        <option value="">-- Pilih Shift --</option>
+        <option>Shift 1</option>
+        <option>Shift 2</option>
+        <option>Shift 3</option>
+      </select>
 
-    <button type="button" id="saveBtn">💾 Simpan Data</button>
-    <button type="button" id="fotoBtn" disabled>📸 Ambil Foto (1x / shift)</button>
-    <button type="button" id="submitBtn">📤 Kirim</button>
-  </form>
+      <label>MCCB/PDB:</label>
+      <select id="mccb" required></select>
 
-  <p id="status"></p>
+      <label>Arus R (A):</label>
+      <input type="number" id="arus_r" required>
 
-  <canvas id="canvas" class="hidden"></canvas>
-  <img id="preview" class="preview hidden">
+      <label>Arus S (A):</label>
+      <input type="number" id="arus_s" required>
 
-  <div id="output"></div>
-</div>
+      <label>Arus T (A):</label>
+      <input type="number" id="arus_t" required>
+
+      <label>Catatan:</label>
+      <textarea id="catatan"></textarea>
+
+      <button type="button" id="saveBtn">💾 Simpan Data</button>
+      <button type="button" id="fotoBtn" disabled>📸 Ambil Foto (per shift)</button>
+      <button type="button" id="submitBtn">📤 Kirim Data</button>
+    </form>
+
+    <p id="status"></p>
+
+    <canvas id="canvas" class="hidden"></canvas>
+    <img id="preview" class="preview hidden" alt="Preview foto (watermarked)">
+
+    <div id="output"></div>
+  </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbw334_2PBD_BBWjYrSHM5Y37NytKMj1n2fAKZ0XVia7EEb2sUdXPYQbq5QTiWhxDyQw/exec"; 
+(() => {
+  const loginPage = document.getElementById('loginPage');
+  const formPage = document.getElementById('formPage');
+  const loginBtn = document.getElementById('loginBtn');
+  const satuanKerja = document.getElementById('satuanKerja');
+  const petugasInput = document.getElementById('petugas');
+  const unitKerjaInput = document.getElementById('unitKerja');
+  const lokasiStatus = document.getElementById('lokasiStatus');
+  const lokasiStatus2 = document.getElementById('lokasiStatus2');
+  const canvas = document.getElementById('canvas');
+  const preview = document.getElementById('preview');
+  const ctx = canvas.getContext('2d');
+  const fotoBtn = document.getElementById('fotoBtn');
+  const output = document.getElementById('output');
+  const status = document.getElementById('status');
+  const mccbSelect = document.getElementById('mccb');
 
-const loginPage = document.getElementById('loginPage');
-const formPage = document.getElementById('formPage');
-const satuanKerja = document.getElementById('satuanKerja');
-const petugasInput = document.getElementById('petugas');
-const unitKerjaInput = document.getElementById('unitKerja');
+  let lokasiTeks = { alamat: "", lat: "", lng: "" };
+  const savedReports = {}; // { mccbName: data }
+  let currentShiftPhoto = null; // dataURL compressed + watermarked
+  let currentUnit = "";
 
-const tanggal = document.getElementById('tanggal');
-const shift = document.getElementById('shift');
-const arus_r = document.getElementById('arus_r');
-const arus_s = document.getElementById('arus_s');
-const arus_t = document.getElementById('arus_t');
-const catatan = document.getElementById('catatan');
+  const scriptURL = "https://script.google.com/macros/s/AKfycbyukmb0peJ8Xn3TyfQh-7UHhrpyCilEzHhaKTa2BbXvYO1bfsqPNFHx7wvy6huNUNfM/exec"; 
 
-const mccbSelect = document.getElementById('mccb');
-const lokasiStatus = document.getElementById('lokasiStatus');
-const status = document.getElementById('status');
+  // ---------- LOGIN ----------
+  loginBtn.addEventListener('click', async () => {
+    const nama = document.getElementById('loginPetugas').value.trim();
+    const unit = satuanKerja.value;
+    if (!nama || !unit) { alert("Masukkan nama dan satuan kerja terlebih dahulu!"); return; }
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+    petugasInput.value = nama;
+    unitKerjaInput.value = unit;
+    currentUnit = unit;
 
-const preview = document.getElementById('preview');
-const fotoBtn = document.getElementById('fotoBtn');
-const output = document.getElementById('output');
+    // switch UI
+    loginPage.classList.add('hidden');
+    formPage.classList.remove('hidden');
+    formPage.setAttribute('aria-hidden','false');
 
-let lokasiTeks = { alamat:"", lat:"", lng:"" };
-let savedReports = {};
-let photoStore = {};
+    lokasiStatus.textContent = "📍 Mengambil alamat...";
+    lokasiStatus2.textContent = "📍 Mengambil alamat...";
+    // get location once
+    await ambilLokasi();
+    isiDropdownMCCB(unit);
+    fotoBtn.disabled = false; // allow foto once logged in (but you may still require saved data)
+  });
 
-document.getElementById('loginBtn').onclick = () => {
-  const nama = document.getElementById('loginPetugas').value.trim();
-  const unit = satuanKerja.value;
-  if (!nama || !unit) return alert("Isi semua field!");
+  // ---------- DROPDOWN MCCB ----------
+  function isiDropdownMCCB(unit) {
+    mccbSelect.innerHTML = `<option value="">-- Pilih MCCB/PDB --</option>`;
+    if (unit === "Stasiun Pucanggading") {
+      [
+        "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.",
+        "MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
+        "MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.","MCCB AC Lantai 1 G. Ops.",
+        "MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"
+      ].forEach(n => mccbSelect.insertAdjacentHTML('beforeend', `<option>${n}</option>`));
+    } else {
+      ["PDB Pemancar","PDB AC","PDB Penerangan"].forEach(n => mccbSelect.insertAdjacentHTML('beforeend', `<option>${n}</option>`));
+    }
+  }
 
-  petugasInput.value = nama;
-  unitKerjaInput.value = unit;
+  // ---------- AMBIL LOKASI (Reverse once) ----------
+  async function ambilLokasi() {
+    if (!navigator.geolocation) {
+      lokasiStatus.textContent = "❌ Geolocation tidak didukung.";
+      lokasiStatus2.textContent = "❌ Geolocation tidak didukung.";
+      lokasiTeks = { alamat: "Geolocation tidak didukung", lat:"", lng:"" };
+      return;
+    }
 
-  loginPage.classList.add('hidden');
-  formPage.classList.remove('hidden');
+    try {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { maximumAge:60000, timeout:10000 }));
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
 
-  ambilLokasi();
-  isiDropdown(unit);
-};
+      // reverse geocoding via Nominatim (simple)
+      try {
+        const u = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        const r = await fetch(u, { headers: { 'Accept': 'application/json' }});
+        const json = await r.json();
+        const alamat = json.display_name || `${lat}, ${lng}`;
+        lokasiTeks = { alamat, lat, lng };
+        lokasiStatus.textContent = `✅ ${alamat}`;
+        lokasiStatus2.textContent = `✅ ${alamat}`;
+      } catch (err) {
+        lokasiTeks = { alamat: `Lat: ${lat}, Lng: ${lng}`, lat, lng };
+        lokasiStatus.textContent = `⚠️ Alamat gagal (koordinat diperoleh)`;
+        lokasiStatus2.textContent = `⚠️ Alamat gagal (koordinat diperoleh)`;
+      }
+    } catch (err) {
+      lokasiStatus.textContent = "❌ Lokasi gagal diperoleh (izin/tidak tersedia).";
+      lokasiStatus2.textContent = "❌ Lokasi gagal diperoleh (izin/tidak tersedia).";
+      lokasiTeks = { alamat: "Lokasi gagal diperoleh", lat:"", lng:"" };
+    }
+  }
 
-function isiDropdown(u){
-  mccbSelect.innerHTML = `<option value="">--Pilih--</option>`;
-  let list =
-    u === "Stasiun Pucanggading"
-      ? [
-          "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.",
-          "MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama",
-          "MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
-          "MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.",
-          "MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"
-        ]
-      : ["PDB Pemancar","PDB AC","PDB Penerangan"];
+  // ---------- SIMPAN DATA (per MCCB) ----------
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const mccb = mccbSelect.value;
+    if (!mccb) { alert("Pilih MCCB/PDB dahulu!"); return; }
+    const shift = document.getElementById('shift').value;
+    if (!shift) { alert("Pilih Shift terlebih dahulu!"); return; }
 
-  list.forEach(x => mccbSelect.insertAdjacentHTML("beforeend", `<option>${x}</option>`));
-}
+    const data = {
+      petugas: petugasInput.value,
+      satuan_kerja: unitKerjaInput.value,
+      tanggal: document.getElementById('tanggal').value,
+      shift,
+      arus_r: document.getElementById('arus_r').value,
+      arus_s: document.getElementById('arus_s').value,
+      arus_t: document.getElementById('arus_t').value,
+      catatan: document.getElementById('catatan').value,
+      foto: currentShiftPhoto || "", // akan dijadikan foto shift saat submit jika ada
+      lokasi: lokasiTeks,
+      savedAt: new Date().toLocaleString()
+    };
 
-function ambilLokasi(){
-  lokasiStatus.innerText="📍Mengambil...";
-  navigator.geolocation?.getCurrentPosition(async p=>{
-    const lat=p.coords.latitude.toFixed(6);
-    const lng=p.coords.longitude.toFixed(6);
-    try{
-      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-      const j=await r.json();
-      lokasiTeks={alamat:j.display_name,lat,lng};
-      lokasiStatus.innerText="✅ "+j.display_name;
-    }catch{
-      lokasiTeks={alamat:`${lat}, ${lng}`,lat,lng};
-      lokasiStatus.innerText="⚠️ Lokasi diperoleh";
+    savedReports[mccb] = data;
+    status.textContent = `✅ Data tersimpan untuk ${mccb} (${shift})`;
+    renderOutput();
+  });
+
+  // ---------- FOTO (per shift) ----------
+  fotoBtn.addEventListener('click', () => {
+    // require shift selected
+    const shift = document.getElementById('shift').value;
+    if (!shift) { alert("Pilih Shift dulu supaya foto disimpan untuk shift yang benar."); return; }
+
+    // create input element to trigger camera/file picker
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    input.onchange = async (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) { alert("Tidak ada file dipilih."); input.remove(); return; }
+
+      // read and compress
+      const dataURL = await readFileAsDataURL(file);
+      const compressed = await compressAndWatermark(dataURL);
+      currentShiftPhoto = compressed; // dataURL JPEG
+      // attach foto to all savedReports of current shift & unit (so they carry same image)
+      for (let key in savedReports) {
+        const item = savedReports[key];
+        if (item && item.shift === shift && item.satuan_kerja === unitKerjaInput.value) {
+          item.foto = compressed;
+        }
+      }
+      preview.src = compressed;
+      preview.classList.remove('hidden');
+      status.textContent = `✅ Foto shift ${shift} siap (terkompress).`;
+      input.remove();
+    };
+
+    input.click();
+    // safety remove after some seconds (cleanup)
+    setTimeout(() => input.remove(), 5000);
+  });
+
+  // helper: read file to dataURL
+  function readFileAsDataURL(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = (e) => rej(e);
+      r.readAsDataURL(file);
+    });
+  }
+
+  // helper: compress & watermark; returns dataURL
+  async function compressAndWatermark(dataURL) {
+    return new Promise((res) => {
+      const img = new Image();
+      img.onload = () => {
+        // resize to max width 1200 while keeping ratio
+        const maxW = 1200;
+        let w = img.width, h = img.height;
+        if (w > maxW) { const ratio = maxW / w; w = Math.round(maxW); h = Math.round(h * ratio); }
+
+        canvas.width = w;
+        canvas.height = h;
+        // draw image
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // prepare watermark text (wrap address)
+        const fontSize = Math.max(14, Math.floor(canvas.height / 36));
+        ctx.font = `${fontSize}px Segoe UI, Arial`;
+        ctx.fillStyle = "white";
+        ctx.textBaseline = "top";
+
+        const padding = 12;
+        // build lines: line1 = name + " — " + unit (single line)
+        const line1 = `${petugasInput.value} — ${unitKerjaInput.value}`;
+        // line2 = address (wrap)
+        const address = lokasiTeks.alamat || "";
+        const coordsTime = `(${lokasiTeks.lat || ''}, ${lokasiTeks.lng || ''}) — ${new Date().toLocaleString()}`;
+
+        // wrap address to fit
+        const maxTextWidth = canvas.width - padding*2;
+        const addressLines = wrapTextToArray(ctx, address, maxTextWidth);
+        // compute box height
+        const totalLines = 2 + addressLines.length + 1; // line1 + blank? + address lines + coords line
+        const lineHeight = Math.round(fontSize * 1.4);
+        const boxHeight = (totalLines * lineHeight) + padding*2;
+
+        // draw semi-transparent box
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(0, canvas.height - boxHeight, canvas.width, boxHeight);
+
+        // draw white text lines
+        ctx.fillStyle = "white";
+        let y = canvas.height - boxHeight + padding;
+        ctx.fillText(line1, padding, y);
+        y += lineHeight;
+        addressLines.forEach(al => { ctx.fillText(al, padding, y); y += lineHeight; });
+        ctx.fillText(coordsTime, padding, y);
+
+        // convert to JPEG dataURL with quality 0.75
+        const out = canvas.toDataURL('image/jpeg', 0.75);
+        res(out);
+      };
+      img.src = dataURL;
+    });
+  }
+
+  // helper wrap: returns array of lines
+  function wrapTextToArray(ctx, text, maxWidth) {
+    if (!text) return [""];
+    const words = text.split(' ');
+    const lines = [];
+    let current = "";
+    for (let w of words) {
+      const test = current ? (current + " " + w) : w;
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = w;
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+    // limit lines to avoid overflowing box (e.g. max 4 lines)
+    if (lines.length > 4) {
+      const truncated = lines.slice(0,4);
+      truncated[truncated.length-1] = truncated[truncated.length-1] + " …";
+      return truncated;
+    }
+    return lines;
+  }
+
+  // ---------- RENDER TABLE (preview) ----------
+  function renderOutput() {
+    let html = `<h3>Data Tersimpan</h3><table><thead><tr>
+      <th>MCCB/PDB</th><th>Shift</th><th>R</th><th>S</th><th>T</th><th>Catatan</th><th>Waktu Simpan</th></tr></thead><tbody>`;
+    for (let key in savedReports) {
+      const d = savedReports[key];
+      html += `<tr>
+        <td>${escapeHtml(key)}</td>
+        <td>${escapeHtml(d.shift||"")}</td>
+        <td>${escapeHtml(d.arus_r||"")}</td>
+        <td>${escapeHtml(d.arus_s||"")}</td>
+        <td>${escapeHtml(d.arus_t||"")}</td>
+        <td>${escapeHtml(d.catatan||"")}</td>
+        <td>${escapeHtml(d.savedAt||"")}</td>
+      </tr>`;
+    }
+    html += "</tbody></table>";
+    output.innerHTML = html;
+  }
+
+  function escapeHtml(s) { if (!s && s !== 0) return ""; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- SUBMIT (kirim ke Apps Script) ----------
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    if (Object.keys(savedReports).length === 0) { alert("Belum ada data yang disimpan!"); return; }
+    // ensure shift photo included for entries without foto (they should use currentShiftPhoto)
+    for (let key in savedReports) {
+      if (!savedReports[key].foto && currentShiftPhoto) savedReports[key].foto = currentShiftPhoto;
+      // ensure satuan_kerja present
+      if (!savedReports[key].satuan_kerja) savedReports[key].satuan_kerja = currentUnit || unitKerjaInput.value;
+    }
+
+    status.textContent = "⏳ Mengirim data (termasuk foto, bisa agak lama tergantung ukuran)...";
+    try {
+      const res = await fetch(scriptURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(savedReports),
+      });
+      const txt = await res.text();
+      status.textContent = "✅ Semua data terkirim!";
+      output.innerHTML = `<pre>${escapeHtml(txt)}</pre>`;
+      // clear after send (optional)
+      //savedReports = {}; // not reassign since it's const; instead clear keys
+      for (let k in Object.assign({}, savedReports)) delete savedReports[k];
+      renderOutput();
+      // keep preview and currentShiftPhoto so user sees image
+    } catch (err) {
+      console.error(err);
+      status.textContent = "❌ Gagal kirim data. Cek koneksi atau Apps Script.";
     }
   });
-}
 
-document.getElementById('saveBtn').onclick = ()=>{
-  if(!mccbSelect.value) return alert("Pilih MCCB terlebih dahulu!");
-
-  savedReports[mccbSelect.value] = {
-    petugas: petugasInput.value,
-    unit: unitKerjaInput.value,
-    tanggal: tanggal.value,
-    shift: shift.value,
-    arus_r: arus_r.value,
-    arus_s: arus_s.value,
-    arus_t: arus_t.value,
-    catatan: catatan.value,
-    savedAt: new Date().toLocaleString()
-  };
-
-  fotoBtn.disabled=false;
-  status.innerText="✅ Data tersimpan";
-  render();
-};
-
-fotoBtn.onclick=()=>{
-  let i=document.createElement('input');
-  i.type='file'; i.accept='image/*'; i.capture='environment';
-
-  i.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      let img=new Image();
-      img.src=ev.target.result;
-      img.onload=()=>{
-        const w=1600,h=img.height*(1600/img.width);
-        canvas.width=w; canvas.height=h;
-        ctx.drawImage(img,0,0,w,h);
-        addWatermark();
-        const key=`${unitKerjaInput.value}|${tanggal.value}|${shift.value}`;
-        photoStore[key] = canvas.toDataURL('image/jpeg',0.7);
-        preview.src=photoStore[key];
-        preview.classList.remove('hidden');
-      };
-    };
-    reader.readAsDataURL(file);
-  };
-
-  i.click();
-};
-
-function addWatermark(){
-  ctx.fillStyle="rgba(0,0,0,.5)";
-  ctx.fillRect(0,canvas.height-80,canvas.width,80);
-  ctx.fillStyle="#fff";
-  ctx.font="bold 14px Segoe UI";
-  ctx.fillText("📍 "+lokasiTeks.alamat,10,canvas.height-60);
-  ctx.fillText(`${petugasInput.value} — ${unitKerjaInput.value}`,10,canvas.height-40);
-  ctx.fillText(new Date().toLocaleString(),10,canvas.height-20);
-}
-
-function render(){
-  let html = `<h3>Data Tersimpan</h3><table><tr>
-    <th>MCCB/PDB</th><th>R</th><th>S</th><th>T</th><th>Catatan</th></tr>`;
-
-  for(let k in savedReports){
-    let d=savedReports[k];
-    html += `<tr>
-      <td>${k}</td><td>${d.arus_r}</td><td>${d.arus_s}</td><td>${d.arus_t}</td><td>${d.catatan}</td>
-    </tr>`;
-  }
-  html+="</table>";
-  output.innerHTML=html;
-}
-
-document.getElementById('submitBtn').onclick=async()=>{
-  if(!Object.keys(savedReports).length)
-    return alert("Belum ada data tersimpan!");
-
-  status.innerText="⏳ Mengirim ke server...";
-  
-  const any = Object.values(savedReports)[0];
-  const keyPhot = `${any.unit}|${any.tanggal}|${any.shift}`;
-  
-  const payload = {
-    entries: savedReports,
-    _photos: {}
-  };
-
-  if(photoStore[keyPhot])
-    payload._photos[keyPhot] = photoStore[keyPhot];
-
-  try {
-  const res = await fetch(scriptURL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  status.innerText = "✅ Data terkirim! Cek Google Sheets 👌";
-  savedReports = {};
-  output.innerHTML = "";
-  preview.classList.add("hidden");
-} catch(err) {
-  status.innerText = "❌ Gagal kirim: " + err;
-}
-
+  // expose for debugging
+  window.__savedReports = savedReports;
+})();
 </script>
-
 </body>
 </html>
-
-
-
