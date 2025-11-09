@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Monitoring MCCB</title>
+  <link rel="icon" href="logo.png" type ="image/png"/>
+  <style>
+    /* --- STYLES: tetap sama seperti versi asli (tidak mengubah tampilan utama) --- */
+    body { font-family: 'Segoe UI', sans-serif; background-color: #0d3b66; margin: 0; padding: 0; color: #000; }
+    .container { background: #fff; border-radius: 20px; padding: 20px; max-width: 850px; margin: 40px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    h1 { text-align: center; color: #0d3b66; margin-bottom: 20px; }
+    label { display: block; font-weight: 600; color: #333; margin-bottom: 4px; }
+    select, input, textarea, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+    textarea { resize: vertical; }
+    button { background: #0d3b66; color: #fff; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; margin-top: 10px; }
+    button:hover { background: #094a8a; }
+    #toast { visibility: hidden; min-width: 250px; background-color: #0d3b66; color: #fff; text-align: center; border-radius: 8px; padding: 10px; position: fixed; z-index: 1; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
+    #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; font-size: 13px; text-align: left; }
+    th { background: #0d3b66; color: white; }
+    .small { font-size: 12px; color: #444; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .arus-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .preview { margin-top: 20px; }
+    /* floating flow button */
+    #flowBtn { position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e6e6e6 40%, #cfcfcf 100%); color: #0d3b66; border: 1px solid rgba(255,255,255,0.6); font-size: 22px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.25); transition: all 0.3s ease; z-index: 9999; }
+    #flowModal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 10000; }
+    #flowModal.show { display:flex; }
+    .flowContent { background: #fff; border-radius: 16px; padding: 20px; max-width: 90%; max-height: 85%; overflow-y: auto; position: relative; text-align: center; }
+    .flowContent img { max-width: 100%; height: auto; border-radius: 8px; }
+    #closeFlow { position: absolute; top: 8px; right: 16px; font-size: 28px; font-weight: bold; color: #444; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="container" id="loginSection">
+    <h1>Login Petugas</h1>
+    <label for="loginNama">Nama Petugas:</label>
+    <input type="text" id="loginNama" placeholder="Masukkan nama petugas" required />
+    <label for="loginSatuan">Satuan Kerja:</label>
+    <select id="loginSatuan" required>
+      <option value="">-- Pilih Satuan Kerja --</option>
+      <option>Stasiun Pucanggading</option>
+      <option>Tx Baribis</option>
+      <option>Tx Garung</option>
+      <option>Tx Gantungan</option>
+      <option>Tx Gn Depok</option>
+      <option>Tx Gn Tugel</option>
+      <option>Tx Gombel</option>
+      <option>Tx Pager Gedog</option>
+      <option>Tx Pucang Pendawa</option>
+      <option>Tx Semanggi</option>
+    </select>
+    <button id="loginBtn">Masuk</button>
+    <p id="loginStatus" style="text-align:center; color:#666; font-size:14px;">🔹 Masukkan identitas Anda untuk melanjutkan.</p>
+  </div>
+
+
+  <div class="container hidden" id="formSection">
+    <h1>📋 Form Metering</h1>
+    <p id="lokasiStatus2" class="small">📍 Mengambil alamat...</p>
+
+    <form id="formPage">
+      <label>Nama Petugas:</label>
+      <input type="text" id="petugas" readonly />
+
+      <label>Satuan Kerja:</label>
+      <input type="text" id="satuan_kerja" readonly />
+
+      
+      
+      <div class="form-row">
+        <div>
+          <label>Tanggal:</label>
+          <input type="date" id="tanggal" required />
+        </div>
+        <div>
+          <label>Shift:</label>
+          <select id="shift">
+            <option value="">-- Pilih Shift --</option>
+            <option>Shift 1</option>
+            <option>Shift 2</option>
+            <option>Shift 3</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Upload Foto : </label>
+      <input type="file" id="foto" accept="image/*" capture="environment" />
+      <div id="fotoStatus" class="small" style="margin-top:6px;color:#444;">— belum ada foto</div>
+
+
+      <label>Jenis MCCB / PDB:</label>
+      <select id="mccb">
+        <option value="">-- Pilih MCCB/PDB --</option>
+      </select>
+
+      <label>Arus (Ampere):</label>
+      <div class="arus-row">
+        <div>
+          <label for="arus_r">Arus R (A):</label>
+          <input type="number" id="arus_r" step="0.01" />
+        </div>
+        <div>
+          <label for="arus_s">Arus S (A):</label>
+          <input type="number" id="arus_s" step="0.01" />
+        </div>
+        <div>
+          <label for="arus_t">Arus T (A):</label>
+          <input type="number" id="arus_t" step="0.01" />
+        </div>
+      </div>
+
+      <label>Catatan:</label>
+      <textarea id="catatan" placeholder="Tambahkan catatan..."></textarea>
+
+      <button type="button" id="saveBtn">💾 Simpan Data</button>
+      <button type="button" id="submitBtn">📤 Kirim ke Spreadsheet</button>
+    </form>
+
+    <div id="status"></div>
+
+    <div class="preview">
+      <h3>📋 Data Tersimpan (Belum Dikirim)</h3>
+      <img id="fotoPreview" class="hidden" alt="Preview foto" style="max-width:100%;margin-bottom:8px;">
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <button id="flowBtn" title="Lihat Panduan">❓</button>
+
+  <div id="flowModal" class="hidden">
+    <div class="flowContent">
+      <span id="closeFlow">&times;</span>
+      <h2>🧭 Panduan Pengisian</h2>
+      <img id="flowImg" src="" alt="Flowchart Panduan" />
+    </div>
+  </div>
+
+<script>
+
+const scriptURL = "https://script.google.com/macros/s/AKfycbxoEyRyQSSkchff0P--Zo2gig_IHzbm2a6NsZaxVj6KJaKFWtmM21k2l2Glak-exdv2/exec"; // metering-data
+const fotoUploadURL = "https://script.google.com/macros/s/AKfycbxOsZ8NO-TSe9QI3xBnt81hOuv7r3H1VKs8QYvr9UsUOoM6NmTEFGY2VI5Zesj_kZSvZQ/exec"; // metering-foto
+
+/* DOM refs */
+const lokasiEl = document.getElementById('lokasiStatus2');
+const output = document.getElementById('output');
+const status = document.getElementById('status');
+const loginBtn = document.getElementById('loginBtn');
+const loginNama = document.getElementById('loginNama');
+const loginSatuan = document.getElementById('loginSatuan');
+const loginSection = document.getElementById('loginSection');
+const formSection = document.getElementById('formSection');
+const foto = document.getElementById('foto');
+const fotoStatus = document.getElementById('fotoStatus');
+const fotoPreview = document.getElementById('fotoPreview');
+const el = { mccb: document.getElementById('mccb') };
+const ORDER_PDB = ["PDB Pemancar", "PDB AC", "PDB Penerangan"];
+const ORDER_MCCB = [
+  "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.",
+  "MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
+  "MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.",
+  "MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"
+];
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+
+let dataPerMCB = {};
+let lokasiTeks = {};
+let tempInputs = {};
+let fotoDriveURL = ""; // <-- URL publik Drive hasil upload foto
+let loginTimestamp ="";
+let currentCompressedDataURL = "";// base64 dataURL client-side
+let savedReports = {};
+
+/* ---------- helper UI ---------- */
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+/* ---------- geolocation + reverse ---------- */
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      lokasiTeks = { lat, lng };
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        lokasiTeks.alamat = data.display_name;
+        lokasiEl.textContent = `📍${data.display_name} (${lat}, ${lng})`;
+      } catch {
+        lokasiEl.textContent = `(${lat}, ${lng})`;
+      }
+    }, err => {
+      lokasiEl.textContent = "📍 Lokasi tidak tersedia";
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  } else lokasiEl.textContent = "Geolocation tidak didukung";
+}
+getLocation();
+
+/* ---------- populate MCCB options ---------- */
+function isiMCCB(unit){
+  const data = unit === "Stasiun Pucanggading"
+    ? ["MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.","MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.","MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.","MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"]
+    : ["PDB Pemancar","PDB AC","PDB Penerangan"];
+  el.mccb.innerHTML ='<option value="">-- Pilih MCCB/PDB --</option>' + data.map(x => `<option value="${x}">${x}</option>`).join('');
+}
+el.mccb.addEventListener("change", () => {
+  const prev = el.mccb.dataset.prev;
+  if (prev) {
+    tempInputs[prev] = {
+      r: document.getElementById('arus_r').value,
+      s: document.getElementById('arus_s').value,
+      t: document.getElementById('arus_t').value,
+      catatan: document.getElementById('catatan').value
+    };
+  }
+
+  const jenisBaru = el.mccb.value;
+  document.getElementById('arus_r').value = "";
+  document.getElementById('arus_s').value = "";
+  document.getElementById('arus_t').value = "";
+  document.getElementById('catatan').value = "";
+
+  if (tempInputs[jenisBaru]) {
+    const d = tempInputs[jenisBaru];
+    document.getElementById('arus_r').value = d.r;
+    document.getElementById('arus_s').value = d.s;
+    document.getElementById('arus_t').value = d.t;
+    document.getElementById('catatan').value = d.catatan;
+  }
+  el.mccb.dataset.prev = jenisBaru;
+});
+
+/* ---------- login flow ---------- */
+loginBtn.addEventListener('click', () => {
+  const nama = loginNama.value.trim();
+  const satuan = loginSatuan.value;
+  if (!nama || !satuan) { alert("Mohon isi Nama Petugas dan pilih Satuan Kerja terlebih dahulu."); return; }
+  loginTimestamp = new Date().toISOString();
+  localStorage.setItem('lastNamaPetugas', nama);
+  localStorage.setItem('lastSatuanKerja', satuan);
+  document.getElementById('petugas').value = nama;
+  document.getElementById('satuan_kerja').value = satuan;
+  loginSection.classList.add('hidden');
+  formSection.classList.remove('hidden');
+  isiMCCB(satuan);
+});
+
+window.addEventListener('load', () => {
+  const lastNama = localStorage.getItem('lastNamaPetugas');
+  const lastSatuan = localStorage.getItem('lastSatuanKerja');
+  if (lastNama) {
+    loginNama.value = lastNama;
+    document.getElementById('loginStatus').innerHTML = `🔹 Terakhir login sebagai <strong>${lastNama}</strong>${ lastSatuan ? ` (${lastSatuan})` : "" }.`;
+  }
+});
+
+/* ---------- helper: read file -> dataURL ---------- */
+function readFileAsDataURL(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = e => rej(e);
+    r.readAsDataURL(file);
+  });
+}
+
+/* ---------- compress & watermark (sama seperti versi lama) ---------- */
+function compressAndWatermark(dataURL) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1200;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > maxW) { const ratio = maxW / w; w = maxW; h = Math.round(h * ratio); }
+      canvas.width = w; canvas.height = h;
+      ctx.clearRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+
+      const fontSize = Math.max(13, Math.floor(h/36));
+      ctx.font = `${fontSize}px Segoe UI, Arial, sans-serif`;
+      ctx.textBaseline = 'top';
+      const padding = 12;
+      const maxTextWidth = w - padding*2;
+
+      const lines = [
+        `${document.getElementById('petugas').value || ''} — ${document.getElementById('satuan_kerja').value || ''}`,
+        ...wrapTextToArray(ctx, lokasiTeks.alamat || "", maxTextWidth),
+        `(${lokasiTeks.lat||''}, ${lokasiTeks.lng||''}) — ${new Date().toLocaleString()}`
+      ];
+
+      const lineHeight = Math.round(fontSize*1.4);
+      const boxHeight = lines.length*lineHeight + padding*2;
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0,h-boxHeight,w,boxHeight);
+      ctx.fillStyle = "#fff";
+      let y = h - boxHeight + padding;
+      lines.forEach(ln => { ctx.fillText(ln, padding, y); y+=lineHeight; });
+
+      res(canvas.toDataURL('image/jpeg',0.72));
+    };
+    img.src = dataURL;
+  });
+}
+function wrapTextToArray(ctx,text,maxWidth) {
+  if(!text) return [];
+  const words=text.split(' '), lines=[];
+  let cur="";
+  for(const w of words){
+    const test = cur ? cur+" "+w:w;
+    if(ctx.measureText(test).width>maxWidth && cur){ lines.push(cur); cur=w; }
+    else cur=test;
+  }
+  if(cur) lines.push(cur);
+  if(lines.length>4){ lines[3]+=" …"; return lines.slice(0,4); }
+  return lines;
+}
+
+/* ---------- FOTO: pilih file -> kompres -> upload (AS FORM URLENCODE) ---------- */
+foto.addEventListener("change", async (ev) => {
+  const tanggal = document.getElementById("tanggal").value;
+  const shift = document.getElementById("shift").value;
+  if (!shift || !tanggal) {
+    alert("Pilih tanggal & Shift dahulu sebelum ambil foto.");
+    foto.value = "";
+    return;
+  }
+  const file = ev.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const dataUrl = await readFileAsDataURL(file);
+    currentCompressedDataURL = await compressAndWatermark(dataUrl);
+    fotoPreview.src = currentCompressedDataURL;
+    fotoPreview.classList.remove("hidden");
+    fotoStatus.textContent = "⏳ Mengunggah foto ke Drive...";
+
+    // ambil base64 saja
+    const base64 = currentCompressedDataURL.split(",")[1];
+
+    // --- KUNCI: kirim sebagai application/x-www-form-urlencoded (URLSearchParams)
+    // sehingga browser TIDAK akan melakukan preflight OPTIONS.
+    const body = new URLSearchParams();
+    body.append("filedata", base64);
+    body.append("mimetype", "image/jpeg");
+    body.append("loginTimestamp", loginTimestamp);
+    body.append("petugas", document.getElementById("petugas").value);
+    body.append("satuan_kerja", document.getElementById("satuan_kerja").value);
+    body.append("shift", document.getElementById("shift").value);
+    body.append("tanggal", document.getElementById("tanggal").value);
+
+    const res = await fetch(fotoUploadURL, {
+      method: "POST",
+      body: body // no custom headers -> no preflight
+    });
+
+    // baca respons text dan parse JSON (Apps Script mengembalikan JSON string)
+    const text = await res.text();
+    if (!text) throw new Error("Respons kosong dari server (cek doPost Apps Script)");
+    const result = JSON.parse(text);
+    if (result.status === "ok" && result.url) {
+      fotoDriveURL = result.url;
+      fotoStatus.textContent = "✅ Foto tersimpan di Drive.";
+      showToast("📸 Foto tersimpan di Drive.");
+      // Update savedReports entries if they match current key
+      for (const k in savedReports) {
+        const it = savedReports[k];
+        if (it.satuan_kerja === document.getElementById('satuan_kerja').value &&
+            it.tanggal === tanggal &&
+            it.shift === shift) {
+          it.foto = fotoDriveURL;
+        }
+      }
+      renderOutput();
+    } else {
+      throw new Error(result.message || "Upload server menolak");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Gagal mengupload foto: " + err.message);
+    fotoStatus.textContent = "❌ Upload gagal.";
+  }
+});
+
+/* ---------- SAVE per MCCB  ---------- */
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const satuan = document.getElementById('satuan_kerja').value;
+  const petugas = document.getElementById('petugas').value;
+  const tanggal = document.getElementById('tanggal').value;
+  const shift = document.getElementById('shift').value;
+  const jenis = document.getElementById('mccb').value;
+  const r = document.getElementById('arus_r').value;
+  const s = document.getElementById('arus_s').value;
+  const t = document.getElementById('arus_t').value;
+  const catatan = document.getElementById('catatan').value;
+
+  if (!satuan || !petugas || !tanggal || !shift || !jenis) {
+    alert("Lengkapi semua field terlebih dahulu!");
+    return;
+  }
+
+  const key = `${satuan}_${tanggal}_${shift}_${jenis}`;
+  savedReports[key] = {
+    satuan_kerja: satuan,
+    petugas: petugas,
+    tanggal: tanggal,
+    shift: shift,
+    jenis: jenis,
+    arus_r: r,
+    arus_s: s,
+    arus_t: t,
+    catatan: catatan,
+    foto: fotoDriveURL || "", // pakai fotoDriveURL bila sudah tersedia
+    savedAt: new Date().toLocaleTimeString()
+  };
+
+  dataPerMCB[jenis] = { r, s, t, catatan };
+  renderOutput();
+  showToast("💾 Data tersimpan / diperbarui.");
+});
+
+/* ---------- render preview table ---------- */
+function renderOutput() {
+  if (Object.keys(savedReports).length === 0) {
+    output.innerHTML = "<em>Belum ada data tersimpan.</em>";
+    return;
+  }
+  const satuan = document.getElementById('satuan_kerja').value;
+  const urutan = satuan === "Stasiun Pucanggading" ? ORDER_MCCB : ORDER_PDB;
+
+  const sorted = Object.values(savedReports).sort(
+    (a,b) => urutan.indexOf(a.jenis) - urutan.indexOf(b.jenis)
+  );
+  let html = "<table><tr><th>Satuan</th><th>Petugas</th><th>Tanggal</th><th>Shift</th><th>Jenis</th><th>R</th><th>S</th><th>T</th><th>Foto</th></tr>";
+  sorted.forEach(r=>{
+    const fotoCell = r.foto ? `<a href="${r.foto}" target="_blank">lihat</a>` : "";
+    html += `<tr><td>${r.satuan_kerja}</td><td>${r.petugas}</td><td>${r.tanggal}</td><td>${r.shift}</td><td>${r.jenis}</td><td>${r.arus_r}</td><td>${r.arus_s}</td><td>${r.arus_t}</td><td>${fotoCell}</td></tr>`;
+  });
+  html += "</table>";
+  output.innerHTML = html;
+}
+
+/* ---------- SUBMIT ALL to metering-data ---------- */
+  
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  if (Object.keys(savedReports).length === 0) { 
+    alert("Belum ada data yang disimpan!"); 
+    return; 
+  }
+
+  const satuan = document.getElementById('satuan_kerja').value;
+  const urutan = satuan === "Stasiun Pucanggading" ? ORDER_MCCB : ORDER_PDB;
+
+  // 🔹 urutkan data dulu sesuai ORDER_MCCB / ORDER_PDB
+  const sortedData = Object.values(savedReports).sort(
+    (a, b) => urutan.indexOf(a.jenis) - urutan.indexOf(b.jenis)
+  );
+
+  // isi lokasi + set foto hanya di baris terakhir
+  const lastIndex = sortedData.length - 1;
+  sortedData.forEach((row, i) => {
+    row.lokasi = lokasiTeks;
+    row.satuan_kerja ||= satuan;
+    if (i === lastIndex) {
+      row.foto = fotoDriveURL || row.foto || "";
+    } else {
+      delete row.foto;
+    }
+  });
+
+  status.textContent = "⏳ Mengirim data...";
+  try {
+    // gunakan mode no-cors agar tidak preflight
+    await fetch(scriptURL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sortedData)
+    });
+
+    status.textContent = "✅ Data terkirim ke Spreadsheet!";
+    showToast("✅ Data berhasil dikirim!");
+    savedReports = {};
+    renderOutput();
+  } catch (err) {
+    console.error(err);
+    status.textContent = "❌ Gagal kirim data.";
+    showToast("❌ Gagal mengirim data.");
+  }
+});
+
+
+/* ---------- Flowchart popup ---------- */
+const flowBtn = document.getElementById("flowBtn");
+const flowModal = document.getElementById("flowModal");
+const flowImg = document.getElementById("flowImg");
+const closeFlow = document.getElementById("closeFlow");
+const flowImgURL = "https://raw.githubusercontent.com/nonarose/formmeteringaruslistrik/refs/heads/main/flowchart_form.webp";
+flowBtn.addEventListener("click", () => { flowImg.src = flowImgURL; flowModal.classList.add("show"); });
+closeFlow.addEventListener("click", () => { flowModal.classList.remove("show"); });
+flowModal.addEventListener("click", (e) => { if (e.target === flowModal) flowModal.classList.remove("show"); });
+
+</script>
+</body>
+</html>
+
+
+
