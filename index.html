@@ -509,7 +509,7 @@ const flowBtn = document.getElementById("flowBtn");
 const flowModal = document.getElementById("flowModal");
 const flowImg = document.getElementById("flowImg");
 const closeFlow = document.getElementById("closeFlow");
-const flowImgURL = "https://raw.githubusercontent.com/nonarose/formmeteringaruslistrik/refs/heads/main/flowchart_form.webp";
+const flowImgURL = "https://raw.githubusercontent.com/nonarose/formmeteringaruslistrik/refs/heads/main/flowchart_form.svg";
 flowBtn.addEventListener("click", () => { flowImg.src = flowImgURL; flowModal.classList.add("show"); });
 closeFlow.addEventListener("click", () => { flowModal.classList.remove("show"); });
 flowModal.addEventListener("click", (e) => { if (e.target === flowModal) flowModal.classList.remove("show"); });
@@ -517,6 +517,7 @@ flowModal.addEventListener("click", (e) => { if (e.target === flowModal) flowMod
 </script>
 </body>
 </html>
+
 
 
 
