@@ -10,7 +10,6 @@
     body { font-family: 'Segoe UI', sans-serif; background-color: #0d3b66; margin: 0; padding: 0; color: #000; }
     .container { background: #fff; border-radius: 20px; padding: 20px; max-width: 850px; margin: 40px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     h1 { text-align: center; color: #0d3b66; margin-bottom: 20px; }
-    label { display: block; font-weight: 600; color: #333; margin-bottom: 4px; }
     select, input, textarea, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
     textarea { resize: vertical; }
     button { background: #0d3b66; color: #fff; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; margin-top: 10px; }
@@ -481,7 +480,10 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       delete row.foto;
     }
   });
-
+  
+  console.log("📦 DATA YANG DIKIRIM:");
+  console.log(JSON.stringify(sortedData, null, 2));
+  
   status.textContent = "⏳ Mengirim data...";
   try {
     // gunakan mode no-cors agar tidak preflight
@@ -517,6 +519,7 @@ flowModal.addEventListener("click", (e) => { if (e.target === flowModal) flowMod
 </script>
 </body>
 </html>
+
 
 
 
