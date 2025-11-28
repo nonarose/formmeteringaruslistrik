@@ -159,7 +159,7 @@ const foto = document.getElementById('foto');
 const fotoStatus = document.getElementById('fotoStatus');
 const fotoPreview = document.getElementById('fotoPreview');
 const el = { mccb: document.getElementById('mccb') };
-const ORDER_PDB = ["PDB Pemancar", "PDB AC", "PDB Penerangan"];
+const ORDER_PDB = ["MDB Utama/PLN", "PDB Pemancar", "PDB Sarpras"];
 const ORDER_MCCB = [
   "MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.",
   "MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.",
@@ -213,7 +213,7 @@ getLocation();
 function isiMCCB(unit){
   const data = unit === "Stasiun Pucanggading"
     ? ["MCCB GPO/Administrasi","MCCB Peralatan G. Ops.","MCCB Pen. Lantai 2 G. Ops.","MCCB AC Lantai 2 G. Ops.","MCCB AC Studio Utama","MCCB AC R. Berita / Siaran Lantai 2, G.Ops.","MCCB Studio 2 dan AC Teknik","MCCB Lap. Tenis/AC R. Redaksi G. Ops.","MCCB AC Lantai 1 G. Ops.","MCCB Dimer/Lighting Sto. 1","MCCB Outdoor/L. Taman"]
-    : ["PDB Pemancar","PDB AC","PDB Penerangan"];
+    : ["MDB Utama/PLN","PDB Pemancar","PDB Sarpras"];
   el.mccb.innerHTML ='<option value="">-- Pilih MCCB/PDB --</option>' + data.map(x => `<option value="${x}">${x}</option>`).join('');
 }
 el.mccb.addEventListener("change", () => {
@@ -519,6 +519,7 @@ flowModal.addEventListener("click", (e) => { if (e.target === flowModal) flowMod
 </script>
 </body>
 </html>
+
 
 
 
